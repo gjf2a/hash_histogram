@@ -15,8 +15,7 @@ impl<K: Hash + Eq + Copy> HashHistogram<K> {
     }
 
     pub fn bump(&mut self, key: K) {
-        let value: usize = self.map.get(&key).unwrap_or(&0) + 1;
-        self.map.insert(key, value);
+        self.map.insert(key, self.get(key) + 1);
     }
 
     pub fn all_labels(&self) -> HashSet<K> {
