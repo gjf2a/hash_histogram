@@ -46,6 +46,14 @@ impl<K: Hash + Eq + Copy + std::cmp::Ord + fmt::Display> fmt::Display for HashHi
     }
 }
 
+pub fn mode<K: Eq + Copy + Hash, I: Iterator<Item=K>>(items: &mut I) -> K {
+    let mut counts = HashHistogram::new();
+    for k in items {
+        counts.bump(k);
+    }
+    counts.mode()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -75,5 +83,11 @@ mod tests {
         assert_eq!(twos, hist.get(2));
         assert_eq!(2, hist.mode());
         assert_eq!(zeros + ones + twos, hist.total_count());
+    }
+
+    #[test]
+    fn test_iter() {
+        let nums = vec![5, 4, 3, 4, 5, 6, 5];
+        assert_eq!(5, *mode(&mut nums.iter()));
     }
 }
