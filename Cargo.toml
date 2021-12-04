@@ -7,7 +7,7 @@ description = "HashHistogram creates histograms with keys of any hashable data t
 readme = "README.md"
 homepage = "https://github.com/gjf2a/hash_histogram"
 repository = "https://github.com/gjf2a/hash_histogram"
-license = "Unlicense"
+license = "MIT OR Apache-2.0"
 keywords = ["histogram", "hash"]
 categories = ["Data structures"]
 
