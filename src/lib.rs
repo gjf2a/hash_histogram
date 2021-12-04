@@ -1,5 +1,6 @@
 //! # Overview
-//! This library provides `struct HashHistogram`. It wraps `HashMap` to provide a straightforward histogram facility.
+//! This library provides `struct HashHistogram`. It wraps `HashMap` to provide a
+//! straightforward histogram facility.
 //!
 //! ```
 //! use hash_histogram::HashHistogram;
@@ -52,7 +53,7 @@
 //! ```
 //!
 //! `HashHistogram` supports common Rust data structure operations. It implements the
-//! `FromIterator` and `Extend` traits, and derives serde:
+//! `FromIterator` and `Extend` traits, and derives `serde`:
 //! ```
 //! use hash_histogram::HashHistogram;
 //!

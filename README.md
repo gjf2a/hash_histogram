@@ -9,7 +9,8 @@
 * Find the mode of any `IntoIterator` type, bulding a `HashHistogram` as an intermediate step.
 
 # Updates
-* **0.5.2**: Added mode_values()
+* **0.6.0**: Refactored `mode()` and `mode_values()` so that they only return the mode, rather than both mode and count.
+* **0.5.2**: Added `mode_values()`
 * **0.5.1**: Fixed some documentation.
 * **0.5**: Initial public release.
 
