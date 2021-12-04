@@ -29,22 +29,6 @@
 //! assert_eq!(h.mode(), Some(("b", 4)));
 //! ```
 //!
-//! `HashHistogram` implements the `FromIterator` and `Extend` traits:
-//! ```
-//! use hash_histogram::HashHistogram;
-//! // Initialization from an iterator:
-//! let mut h: HashHistogram<&str> = ["a", "b", "a", "b", "c", "b", "a", "b"].iter().collect();
-//! for (s, c) in [("a", 3), ("b", 4), ("c", 1), ("d", 0)].iter() {
-//!     assert_eq!(h.count(s), *c);
-//! }
-//!
-//! h.extend(["b", "d", "b", "e", "b"].iter());
-//!
-//! for (s, c) in [("a", 3), ("b", 7), ("c", 1), ("d", 1), ("e", 1), ("f", 0)].iter() {
-//!     assert_eq!(h.count(s), *c);
-//! }
-//! ```
-//!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` function is provided.
 //! It uses a `HashHistogram` to calculate a mode from an object of any type that has the
 //! `IntoIterator` trait:
@@ -59,6 +43,26 @@
 //! // Passing an iterator from the container.
 //! assert_eq!(mode(nums.iter()).unwrap(), ("a", 3));
 //! ```
+//!
+//! `HashHistogram` supports common Rust data structure operations. It implements the
+//! `FromIterator` and `Extend` traits, and derives serde:
+//! ```
+//! use hash_histogram::HashHistogram;
+//!
+//! // Initialization from an iterator:
+//! let mut h: HashHistogram<isize> = [100, 200, 100, 200, 300, 200, 100, 200].iter().collect();
+//!
+//! // Extension from an iterator
+//! h.extend([200, 400, 200, 500, 200].iter());
+//!
+//! // Serialization
+//! let serialized = serde_json::to_string(&h).unwrap();
+//!
+//! // Deserialization
+//! let deserialized: HashHistogram<isize> = serde_json::from_str(&serialized).unwrap();
+//! assert_eq!(deserialized, h);
+//! ```
+//!
 
 //    Copyright 2021, Gabriel J. Ferrer
 //
@@ -78,12 +82,14 @@ use core::fmt;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::collections::hash_map::Iter;
+use std::fmt::Debug;
+use serde::{Serialize, Deserialize};
 
 // From https://stackoverflow.com/questions/26070559/is-there-any-way-to-create-a-type-alias-for-multiple-traits
-pub trait KeyType: Hash + Clone + Eq {}
-impl <T: Hash + Clone + Eq> KeyType for T {}
+pub trait KeyType: Debug + Hash + Clone + Eq {}
+impl <T: Debug + Hash + Clone + Eq> KeyType for T {}
 
-#[derive(Debug,Clone,Eq,PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct HashHistogram<T:KeyType> {
     histogram: HashMap<T,usize>
 }
