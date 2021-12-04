@@ -7,7 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ddb6a17-150d-48f1-a15e-a228a319a37e" name="Changes" comment="Added workspace.xml file." />
+    <list default="true" id="3ddb6a17-150d-48f1-a15e-a228a319a37e" name="Changes" comment="Fixed category slug.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -114,7 +117,21 @@
       <option name="project" value="LOCAL" />
       <updated>1638639380296</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="IDE update.">
+      <created>1638639496164</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1638639496165</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Fixed category slug.">
+      <created>1638639644894</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1638639644894</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -136,6 +153,8 @@
     <MESSAGE value="Updated to Rust license (i.e. Apache + MIT)" />
     <MESSAGE value="Updated comment." />
     <MESSAGE value="Added workspace.xml file." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added workspace.xml file." />
+    <MESSAGE value="IDE update." />
+    <MESSAGE value="Fixed category slug." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed category slug." />
   </component>
 </project>

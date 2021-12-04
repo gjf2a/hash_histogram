@@ -29,19 +29,26 @@
 //! assert_eq!(h.mode(), Some(("b", 4)));
 //! ```
 //!
-//! Calculating the mode is sufficiently useful on its own that the `mode()` function is provided.
-//! It uses a `HashHistogram` to calculate a mode from an object of any type that has the
+//! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`
+//! functions are provided. Use `mode()` with iterators containing references to values in
+//! containers, and `mode_values()` for iterators that own the values they return.
+//!
+//! They each use a `HashHistogram` to calculate a mode from an object of any type that has the
 //! `IntoIterator` trait:
 //!
 //! ```
-//! use hash_histogram::mode;
-//! let nums = vec!["a", "b", "c", "d", "a", "b", "a"];
+//! use hash_histogram::{mode, mode_values};
+//! let chars = vec!["a", "b", "c", "d", "a", "b", "a"];
 //!
 //! // Directly passing the container.
-//! assert_eq!(mode(&nums).unwrap(), ("a", 3));
+//! assert_eq!(mode(&chars).unwrap(), ("a", 3));
 //!
 //! // Passing an iterator from the container.
-//! assert_eq!(mode(nums.iter()).unwrap(), ("a", 3));
+//! assert_eq!(mode(chars.iter()).unwrap(), ("a", 3));
+//!
+//! // Use mode_values() when using an iterator generating values in place.
+//! let nums = vec![100, 200, 100, 200, 300, 200, 100, 200];
+//! assert_eq!(mode_values(nums.iter().map(|n| n + 1)).unwrap(), (201, 4));
 //! ```
 //!
 //! `HashHistogram` supports common Rust data structure operations. It implements the
@@ -150,6 +157,16 @@ impl<T: KeyType + std::cmp::Ord + fmt::Display> fmt::Display for HashHistogram<T
     }
 }
 
+impl <T: KeyType> FromIterator<T> for HashHistogram<T> {
+    fn from_iter<V: IntoIterator<Item=T>>(iter: V) -> Self {
+        let mut result = HashHistogram::new();
+        for value in iter {
+            result.bump(&value);
+        }
+        result
+    }
+}
+
 impl <'a, T: 'a + KeyType> FromIterator<&'a T> for HashHistogram<T> {
     fn from_iter<V: IntoIterator<Item=&'a T>>(iter: V) -> Self {
         let mut result = HashHistogram::new();
@@ -173,11 +190,11 @@ impl <'a, T: 'a + KeyType> Extend<&'a T> for HashHistogram<T> {
 // https://stackoverflow.com/questions/30540766/how-can-i-add-new-methods-to-iterator
 //
 pub fn mode<'a, T: 'a + KeyType, C: IntoIterator<Item=&'a T>>(container: C) -> Option<(T, usize)> {
-    let mut counts: HashHistogram<T> = HashHistogram::new();
-    for item in container.into_iter() {
-        counts.bump(item);
-    }
-    counts.mode()
+    container.into_iter().collect::<HashHistogram<T>>().mode()
+}
+
+pub fn mode_values<T: KeyType, C: IntoIterator<Item=T>>(container: C) -> Option<(T, usize)> {
+    container.into_iter().collect::<HashHistogram<T>>().mode()
 }
 
 #[cfg(test)]
