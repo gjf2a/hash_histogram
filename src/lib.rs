@@ -26,7 +26,7 @@
 //! assert_eq!(h.ranking(), vec!["b", "a", "c"]);
 //!
 //! // Mode
-//! assert_eq!(h.mode(), Some(("b", 4)));
+//! assert_eq!(h.mode(), Some("b"));
 //! ```
 //!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`
@@ -41,14 +41,14 @@
 //! let chars = vec!["a", "b", "c", "d", "a", "b", "a"];
 //!
 //! // Directly passing the container.
-//! assert_eq!(mode(&chars).unwrap(), ("a", 3));
+//! assert_eq!(mode(&chars).unwrap(), "a");
 //!
 //! // Passing an iterator from the container.
-//! assert_eq!(mode(chars.iter()).unwrap(), ("a", 3));
+//! assert_eq!(mode(chars.iter()).unwrap(), "a");
 //!
 //! // Use mode_values() when using an iterator generating values in place.
 //! let nums = vec![100, 200, 100, 200, 300, 200, 100, 200];
-//! assert_eq!(mode_values(nums.iter().map(|n| n + 1)).unwrap(), (201, 4));
+//! assert_eq!(mode_values(nums.iter().map(|n| n + 1)).unwrap(), 201);
 //! ```
 //!
 //! `HashHistogram` supports common Rust data structure operations. It implements the
@@ -135,10 +135,10 @@ impl <T:KeyType> HashHistogram<T> {
         ranking.iter().map(|(_,t)| t.clone()).collect()
     }
 
-    pub fn mode(&self) -> Option<(T,usize)> {
+    pub fn mode(&self) -> Option<T> {
         self.iter()
             .max_by_key(|(_,count)| **count)
-            .map(|(key, count)| (key.clone(), *count))
+            .map(|(key, _)| key.clone())
     }
 
     pub fn total_count(&self) -> usize {
@@ -189,11 +189,11 @@ impl <'a, T: 'a + KeyType> Extend<&'a T> for HashHistogram<T> {
 //
 // https://stackoverflow.com/questions/30540766/how-can-i-add-new-methods-to-iterator
 //
-pub fn mode<'a, T: 'a + KeyType, C: IntoIterator<Item=&'a T>>(container: C) -> Option<(T, usize)> {
+pub fn mode<'a, T: 'a + KeyType, C: IntoIterator<Item=&'a T>>(container: C) -> Option<T> {
     container.into_iter().collect::<HashHistogram<T>>().mode()
 }
 
-pub fn mode_values<T: KeyType, C: IntoIterator<Item=T>>(container: C) -> Option<(T, usize)> {
+pub fn mode_values<T: KeyType, C: IntoIterator<Item=T>>(container: C) -> Option<T> {
     container.into_iter().collect::<HashHistogram<T>>().mode()
 }
 
@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(zeros, hist.count(&0));
         assert_eq!(ones, hist.count(&1));
         assert_eq!(twos, hist.count(&2));
-        assert_eq!((2, 20), hist.mode().unwrap());
+        assert_eq!(2, hist.mode().unwrap());
         assert_eq!(zeros + ones + twos, hist.total_count());
     }
 }
