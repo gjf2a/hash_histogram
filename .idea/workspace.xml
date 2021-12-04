@@ -7,7 +7,7 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ddb6a17-150d-48f1-a15e-a228a319a37e" name="Changes" comment="Updated comment." />
+    <list default="true" id="3ddb6a17-150d-48f1-a15e-a228a319a37e" name="Changes" comment="Added workspace.xml file." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -107,7 +107,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638639087636</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Added workspace.xml file.">
+      <created>1638639380296</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1638639380296</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -128,6 +135,7 @@
     <MESSAGE value="Eliminated some redundant unit tests." />
     <MESSAGE value="Updated to Rust license (i.e. Apache + MIT)" />
     <MESSAGE value="Updated comment." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated comment." />
+    <MESSAGE value="Added workspace.xml file." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added workspace.xml file." />
   </component>
 </project>
