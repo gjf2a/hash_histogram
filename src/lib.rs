@@ -28,6 +28,15 @@
 //!
 //! // Mode
 //! assert_eq!(h.mode(), Some("b"));
+//!
+//! // Incrementing larger counts
+//! for (s, count) in [("a", 2), ("b", 3), ("c", 10)].iter() {
+//!     h.bump_by(s, *count);
+//! }
+//!
+//! for (s, count) in [("a", 5), ("b", 7), ("c", 11)].iter() {
+//!     assert_eq!(h.count(s), *count);
+//! }
 //! ```
 //!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`
@@ -106,9 +115,13 @@ impl <T:KeyType> HashHistogram<T> {
     pub fn new() -> Self { HashHistogram { histogram: HashMap::new()}}
 
     pub fn bump(&mut self, item: &T) {
+        self.bump_by(item, 1);
+    }
+
+    pub fn bump_by(&mut self, item: &T, increment: usize) {
         match self.histogram.get_mut(item) {
             None => {self.histogram.insert(item.clone(), 1);}
-            Some(count) => {*count += 1}
+            Some(count) => {*count += increment;}
         };
     }
 
