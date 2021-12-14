@@ -30,11 +30,11 @@
 //! assert_eq!(h.mode(), Some("b"));
 //!
 //! // Incrementing larger counts
-//! for (s, count) in [("a", 2), ("b", 3), ("c", 10)].iter() {
+//! for (s, count) in [("a", 2), ("b", 3), ("c", 10), ("d", 5)].iter() {
 //!     h.bump_by(s, *count);
 //! }
 //!
-//! for (s, count) in [("a", 5), ("b", 7), ("c", 11)].iter() {
+//! for (s, count) in [("a", 5), ("b", 7), ("c", 11), ("d", 5)].iter() {
 //!     assert_eq!(h.count(s), *count);
 //! }
 //! ```
@@ -120,7 +120,7 @@ impl <T:KeyType> HashHistogram<T> {
 
     pub fn bump_by(&mut self, item: &T, increment: usize) {
         match self.histogram.get_mut(item) {
-            None => {self.histogram.insert(item.clone(), 1);}
+            None => {self.histogram.insert(item.clone(), increment);}
             Some(count) => {*count += increment;}
         };
     }
