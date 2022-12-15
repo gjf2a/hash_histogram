@@ -81,7 +81,7 @@
 //! ```
 //!
 
-//    Copyright 2021, Gabriel J. Ferrer
+//    Copyright 2022, Gabriel J. Ferrer
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -103,16 +103,16 @@ use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
 
 // From https://stackoverflow.com/questions/26070559/is-there-any-way-to-create-a-type-alias-for-multiple-traits
-pub trait KeyType: Debug + Hash + Clone + Eq {}
-impl <T: Debug + Hash + Clone + Eq> KeyType for T {}
+pub trait KeyType: Debug + Hash + Clone + Eq + Default {}
+impl <T: Debug + Hash + Clone + Eq + Default> KeyType for T {}
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
 pub struct HashHistogram<T:KeyType> {
     histogram: HashMap<T,usize>
 }
 
 impl <T:KeyType> HashHistogram<T> {
-    pub fn new() -> Self { HashHistogram { histogram: HashMap::new()}}
+    pub fn new() -> Self { HashHistogram::default()}
 
     pub fn bump(&mut self, item: &T) {
         self.bump_by(item, 1);
