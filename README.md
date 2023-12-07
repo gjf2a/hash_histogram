@@ -9,6 +9,7 @@
 * Find the mode of any `IntoIterator` type, bulding a `HashHistogram` as an intermediate step.
 
 # Updates
+* **0.8.0**: Added `ranking_with_counts()`.
 * **0.7.0**: `HashHistogram` and `KeyType` now implement `Default`.
 * **0.6.2**: Fixed serious bug in `bump_by()`.
 * **0.6.1**: Added `bump_by()`.

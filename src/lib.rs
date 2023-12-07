@@ -25,6 +25,9 @@
 //!
 //! // Ranked ordering
 //! assert_eq!(h.ranking(), vec!["b", "a", "c"]);
+//! 
+//! // Ranked ordering with counts
+//! assert_eq!(h.ranking_with_counts(), vec![("b", 4), ("a", 3), ("c", 1)]);
 //!
 //! // Mode
 //! assert_eq!(h.mode(), Some("b"));
@@ -144,9 +147,13 @@ impl <T:KeyType> HashHistogram<T> {
     }
 
     pub fn ranking(&self) -> Vec<T> {
-        let mut ranking: Vec<(usize,T)> = self.iter().map(|(t, n)| (*n, t.clone())).collect();
-        ranking.sort_by_key(|(n,_)| -(*n as isize));
-        ranking.iter().map(|(_,t)| t.clone()).collect()
+        self.ranking_with_counts().iter().map(|(k,_)| k.clone()).collect()
+    }
+
+    pub fn ranking_with_counts(&self) -> Vec<(T, usize)> {
+        let mut ranking: Vec<(T,usize)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
+        ranking.sort_by_key(|(_,n)| -(*n as isize));
+        ranking
     }
 
     pub fn mode(&self) -> Option<T> {
