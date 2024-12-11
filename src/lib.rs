@@ -25,7 +25,7 @@
 //!
 //! // Ranked ordering
 //! assert_eq!(h.ranking(), vec!["b", "a", "c"]);
-//! 
+//!
 //! // Ranked ordering with counts
 //! assert_eq!(h.ranking_with_counts(), vec![("b", 4), ("a", 3), ("c", 1)]);
 //!
@@ -99,14 +99,14 @@
 //    limitations under the License.
 
 use core::fmt;
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
+use num::Unsigned;
+use serde::{Deserialize, Serialize};
 use std::collections::hash_map::Iter;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
+use std::hash::Hash;
 use std::iter::Sum;
 use std::ops::AddAssign;
-use num::Unsigned;
-use serde::{Serialize, Deserialize};
 use trait_set::trait_set;
 
 trait_set! {
@@ -115,21 +115,27 @@ trait_set! {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
-pub struct HashHistogram<T:KeyType, C:CounterType = usize> {
-    histogram: HashMap<T,C>
+pub struct HashHistogram<T: KeyType, C: CounterType = usize> {
+    histogram: HashMap<T, C>,
 }
 
-impl <T:KeyType, C: CounterType> HashHistogram<T, C> {
-    pub fn new() -> Self { HashHistogram::default()}
-    
+impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
+    pub fn new() -> Self {
+        HashHistogram::default()
+    }
+
     pub fn bump(&mut self, item: &T) {
         self.bump_by(item, num::one());
     }
 
     pub fn bump_by(&mut self, item: &T, increment: C) {
         match self.histogram.get_mut(item) {
-            None => {self.histogram.insert(item.clone(), increment);}
-            Some(count) => {*count += increment;}
+            None => {
+                self.histogram.insert(item.clone(), increment);
+            }
+            Some(count) => {
+                *count += increment;
+            }
         };
     }
 
@@ -141,40 +147,43 @@ impl <T:KeyType, C: CounterType> HashHistogram<T, C> {
         *self.histogram.get(item).unwrap_or(&num::zero())
     }
 
-    pub fn iter(&self) -> Iter<T,C> {
+    pub fn iter(&self) -> Iter<T, C> {
         self.histogram.iter()
     }
 
     pub fn all_labels(&self) -> HashSet<T> {
-        self.iter()
+        self.iter().map(|(k, _)| k.clone()).collect()
+    }
+
+    pub fn ranking(&self) -> Vec<T> {
+        self.ranking_with_counts()
+            .iter()
             .map(|(k, _)| k.clone())
             .collect()
     }
 
-    pub fn ranking(&self) -> Vec<T> {
-        self.ranking_with_counts().iter().map(|(k,_)| k.clone()).collect()
-    }
-
     pub fn ranking_with_counts(&self) -> Vec<(T, C)> {
-        let mut ranking: Vec<(T,C)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
-        ranking.sort_by(|(_,c1), (_, c2)| c2.cmp(c1));
+        let mut ranking: Vec<(T, C)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
+        ranking.sort_by(|(_, c1), (_, c2)| c2.cmp(c1));
         ranking
     }
 
     pub fn mode(&self) -> Option<T> {
         self.iter()
-            .max_by_key(|(_,count)| **count)
+            .max_by_key(|(_, count)| **count)
             .map(|(key, _)| key.clone())
     }
 
     pub fn total_count(&self) -> C {
-        self.iter().map(|(_,value)| value).copied().sum::<C>()
+        self.iter().map(|(_, value)| value).copied().sum::<C>()
     }
 }
 
-impl<T: KeyType + std::cmp::Ord + fmt::Display, C: CounterType + fmt::Display> fmt::Display for HashHistogram<T,C> {
+impl<T: KeyType + std::cmp::Ord + fmt::Display, C: CounterType + fmt::Display> fmt::Display
+    for HashHistogram<T, C>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut in_order: Vec<T> = self.iter().map(|(k,_)| k).cloned().collect();
+        let mut in_order: Vec<T> = self.iter().map(|(k, _)| k).cloned().collect();
         in_order.sort();
         for label in in_order {
             write!(f, "{}:{}; ", label, self.count(&label))?;
@@ -183,8 +192,8 @@ impl<T: KeyType + std::cmp::Ord + fmt::Display, C: CounterType + fmt::Display> f
     }
 }
 
-impl <T: KeyType, C: CounterType> FromIterator<T> for HashHistogram<T, C> {
-    fn from_iter<V: IntoIterator<Item=T>>(iter: V) -> Self {
+impl<T: KeyType, C: CounterType> FromIterator<T> for HashHistogram<T, C> {
+    fn from_iter<V: IntoIterator<Item = T>>(iter: V) -> Self {
         let mut result = HashHistogram::new();
         for value in iter {
             result.bump(&value);
@@ -193,8 +202,8 @@ impl <T: KeyType, C: CounterType> FromIterator<T> for HashHistogram<T, C> {
     }
 }
 
-impl <'a, T: 'a + KeyType, C: 'a + CounterType> FromIterator<&'a T> for HashHistogram<T, C> {
-    fn from_iter<V: IntoIterator<Item=&'a T>>(iter: V) -> Self {
+impl<'a, T: 'a + KeyType, C: 'a + CounterType> FromIterator<&'a T> for HashHistogram<T, C> {
+    fn from_iter<V: IntoIterator<Item = &'a T>>(iter: V) -> Self {
         let mut result = HashHistogram::new();
         for value in iter {
             result.bump(value);
@@ -203,8 +212,8 @@ impl <'a, T: 'a + KeyType, C: 'a + CounterType> FromIterator<&'a T> for HashHist
     }
 }
 
-impl <'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a T> for HashHistogram<T, C> {
-    fn extend<V: IntoIterator<Item=&'a T>>(&mut self, iter: V) {
+impl<'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a T> for HashHistogram<T, C> {
+    fn extend<V: IntoIterator<Item = &'a T>>(&mut self, iter: V) {
         for value in iter {
             self.bump(value);
         }
@@ -215,12 +224,18 @@ impl <'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a T> for HashHistogram<
 //
 // https://stackoverflow.com/questions/30540766/how-can-i-add-new-methods-to-iterator
 //
-pub fn mode<'a, T: 'a + KeyType, A: IntoIterator<Item=&'a T>>(container: A) -> Option<T> {
-    container.into_iter().collect::<HashHistogram<T, usize>>().mode()
+pub fn mode<'a, T: 'a + KeyType, A: IntoIterator<Item = &'a T>>(container: A) -> Option<T> {
+    container
+        .into_iter()
+        .collect::<HashHistogram<T, usize>>()
+        .mode()
 }
 
-pub fn mode_values<T: KeyType, A: IntoIterator<Item=T>>(container: A) -> Option<T> {
-    container.into_iter().collect::<HashHistogram<T, usize>>().mode()
+pub fn mode_values<T: KeyType, A: IntoIterator<Item = T>>(container: A) -> Option<T> {
+    container
+        .into_iter()
+        .collect::<HashHistogram<T, usize>>()
+        .mode()
 }
 
 #[cfg(test)]
@@ -229,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_hist() {
-        let mut hist = HashHistogram::<_,usize>::new();
+        let mut hist = HashHistogram::<_, usize>::new();
         let zeros = 10;
         let ones = 15;
         let twos = 20;
@@ -254,4 +269,3 @@ mod tests {
         assert_eq!(zeros + ones + twos, hist.total_count());
     }
 }
-
