@@ -158,7 +158,21 @@
       <option name="project" value="LOCAL" />
       <updated>1639492842144</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fixed serious bug in `bump_by()`.">
+      <created>1639498398673</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1639498398673</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Fixed serious bug in `bump_by()`.">
+      <created>1639498468130</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1639498468130</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -185,6 +199,7 @@
     <MESSAGE value="Added mode_values()." />
     <MESSAGE value="Added bump_by()." />
     <MESSAGE value="Updated README.me." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated README.me." />
+    <MESSAGE value="Fixed serious bug in `bump_by()`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed serious bug in `bump_by()`." />
   </component>
 </project>

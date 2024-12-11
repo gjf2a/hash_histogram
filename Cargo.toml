@@ -1,6 +1,6 @@
 [package]
 name = "hash_histogram"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["gjf2a <ferrer@hendrix.edu>"]
 edition = "2021"
 description = "HashHistogram creates histograms with keys of any hashable data type. Features include rank ordering and mode."
@@ -16,3 +16,5 @@ categories = ["data-structures"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+trait-set = "0.3"
+num = "0.4.3"
