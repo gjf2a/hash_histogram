@@ -84,11 +84,7 @@
 //! ```
 //!
 
-<<<<<<< HEAD
 //    Copyright 2021-2024, Gabriel J. Ferrer
-=======
-//    Copyright 2022, Gabriel J. Ferrer
->>>>>>> b9a03bd15f387ab6fa4ce26610318e1448aeeb85
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -113,33 +109,19 @@ use num::Unsigned;
 use serde::{Serialize, Deserialize};
 use trait_set::trait_set;
 
-<<<<<<< HEAD
 trait_set! {
-    pub trait KeyType = Debug + Hash + Clone + Eq;
-    pub trait CounterType = Copy + Clone + Unsigned + AddAssign + Ord + Sum;
+    pub trait KeyType = Debug + Hash + Clone + Eq + Default;
+    pub trait CounterType = Copy + Clone + Unsigned + AddAssign + Ord + Sum + Default;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
 pub struct HashHistogram<T:KeyType, C:CounterType = usize> {
     histogram: HashMap<T,C>
 }
 
 impl <T:KeyType, C: CounterType> HashHistogram<T, C> {
-    pub fn new() -> Self { HashHistogram { histogram: HashMap::new()}}
-=======
-// From https://stackoverflow.com/questions/26070559/is-there-any-way-to-create-a-type-alias-for-multiple-traits
-pub trait KeyType: Debug + Hash + Clone + Eq + Default {}
-impl <T: Debug + Hash + Clone + Eq + Default> KeyType for T {}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
-pub struct HashHistogram<T:KeyType> {
-    histogram: HashMap<T,usize>
-}
-
-impl <T:KeyType> HashHistogram<T> {
     pub fn new() -> Self { HashHistogram::default()}
->>>>>>> b9a03bd15f387ab6fa4ce26610318e1448aeeb85
-
+    
     pub fn bump(&mut self, item: &T) {
         self.bump_by(item, num::one());
     }
@@ -170,19 +152,13 @@ impl <T:KeyType> HashHistogram<T> {
     }
 
     pub fn ranking(&self) -> Vec<T> {
-<<<<<<< HEAD
-        let mut ranking: Vec<(C,T)> = self.iter().map(|(t, n)| (*n, t.clone())).collect();
-        ranking.sort_by(|(c1, _), (c2, _)| c2.cmp(c1));
-        ranking.iter().map(|(_,t)| t.clone()).collect()
-=======
         self.ranking_with_counts().iter().map(|(k,_)| k.clone()).collect()
     }
 
-    pub fn ranking_with_counts(&self) -> Vec<(T, usize)> {
-        let mut ranking: Vec<(T,usize)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
-        ranking.sort_by_key(|(_,n)| -(*n as isize));
+    pub fn ranking_with_counts(&self) -> Vec<(T, C)> {
+        let mut ranking: Vec<(T,C)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
+        ranking.sort_by(|(_,c1), (_, c2)| c2.cmp(c1));
         ranking
->>>>>>> b9a03bd15f387ab6fa4ce26610318e1448aeeb85
     }
 
     pub fn mode(&self) -> Option<T> {

@@ -1,7 +1,9 @@
 # 0.7.0
+* Implemented `Default` trait for `HashHistogram`, which is now expected of the `KeyType`.
+* Added `ranking_with_counts()`.
 * Added a type variable to allow any unsigned Copy type as the counter type.
-* The counter type defaults to `usize`, which previously was the only option.
-* Some situations may require type annotations as a result.
+  * The counter type defaults to `usize`, which previously was the only option.
+  * Some situations may require type annotations as a result.
 
 # 0.6.2
 * Fixed serious bug in `bump_by()`.
