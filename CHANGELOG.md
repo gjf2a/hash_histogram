@@ -1,3 +1,6 @@
+# 0.9.1
+* Fixed issue in README.md
+
 # 0.9.0
 * Added a type variable to allow any unsigned Copy type as the counter type.
   * The counter type defaults to `usize`, which previously was the only option.
