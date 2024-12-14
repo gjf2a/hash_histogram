@@ -22,6 +22,11 @@
 //! let mut iterated: Vec<(&str,usize)> = h.iter().map(|(s,c)| (*s, *c)).collect();
 //! iterated.sort();
 //! assert_eq!(iterated, vec![("a", 3), ("b", 4), ("c", 1)]);
+//! 
+//! // Iterating over counts only
+//! let mut counts: Vec<usize> = h.counts().collect();
+//! counts.sort();
+//! assert_eq!(counts, vec![1, 3, 4]);
 //!
 //! // Ranked ordering
 //! assert_eq!(h.ranking(), vec!["b", "a", "c"]);
@@ -149,6 +154,10 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
 
     pub fn iter(&self) -> Iter<T, C> {
         self.histogram.iter()
+    }
+
+    pub fn counts(&self) -> impl Iterator<Item=C> + '_ {
+        self.iter().map(|(_,c)| c).copied()
     }
 
     pub fn all_labels(&self) -> HashSet<T> {

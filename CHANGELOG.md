@@ -1,3 +1,6 @@
+# 0.9.2
+* Added `.counts()`
+
 # 0.9.1
 * Fixed issue in README.md
 
