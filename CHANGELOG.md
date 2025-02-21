@@ -1,3 +1,6 @@
+# 0.9.3
+* Updated to Rust 2024
+
 # 0.9.2
 * Added `counts()`
 
