@@ -89,7 +89,7 @@
 //! ```
 //!
 
-//    Copyright 2021-2024, Gabriel J. Ferrer
+//    Copyright 2021-2026, Gabriel J. Ferrer
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -104,7 +104,8 @@
 //    limitations under the License.
 
 use core::fmt;
-use num::Unsigned;
+use std::cmp::Ordering;
+use num::{One, Zero};
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
@@ -116,7 +117,7 @@ use trait_set::trait_set;
 
 trait_set! {
     pub trait KeyType = Debug + Hash + Clone + Eq + Default;
-    pub trait CounterType = Copy + Clone + Unsigned + AddAssign + Ord + Sum + Default;
+    pub trait CounterType = Copy + Clone + One + Zero + AddAssign + PartialOrd + Sum + Default;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
@@ -173,13 +174,13 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
 
     pub fn ranking_with_counts(&self) -> Vec<(T, C)> {
         let mut ranking: Vec<(T, C)> = self.iter().map(|(t, n)| (t.clone(), *n)).collect();
-        ranking.sort_by(|(_, c1), (_, c2)| c2.cmp(c1));
+        ranking.sort_by(|(_, c1), (_, c2)| c2.partial_cmp(c1).unwrap_or(Ordering::Equal));
         ranking
     }
 
     pub fn mode(&self) -> Option<T> {
         self.iter()
-            .max_by_key(|(_, count)| **count)
+            .max_by(|(_,c1), (_,c2)| c1.partial_cmp(c2).unwrap_or(Ordering::Equal))
             .map(|(key, _)| key.clone())
     }
 
