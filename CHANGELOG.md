@@ -1,3 +1,7 @@
+# 0.10.0
+* Relaxed a number of type restrictions on keys and values.
+* This relaxation of restrictions now enables `f32` and `f64` to qualify as a `CounterType`. 
+
 # 0.9.3
 * Updated to Rust 2024
 

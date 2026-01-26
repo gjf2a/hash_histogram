@@ -50,6 +50,7 @@
 //! Counts can even be floating-point values:
 //! ```
 //! use hash_histogram::HashHistogram;
+//! use assert_float_eq::assert_f64_near;
 //!
 //! let mut h = HashHistogram::new();
 //! for (s, weight) in [("a", 0.25), ("b", 0.5), ("a", 0.3), ("c", 0.4), ("b", 0.1)].iter() {
@@ -59,6 +60,9 @@
 //! for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
 //!     assert_eq!(h.count(s), *total);
 //! }
+//! 
+//! assert_f64_near!(h.total_count(), 1.55, 4);
+//! assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
 //! ```
 //!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`
@@ -270,6 +274,8 @@ pub fn mode_values<T: KeyType, A: IntoIterator<Item = T>>(container: A) -> Optio
 
 #[cfg(test)]
 mod tests {
+    use assert_float_eq::assert_f64_near;
+
     use super::*;
 
     #[test]
@@ -337,5 +343,8 @@ mod tests {
         for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
             assert_eq!(h.count(s), *total);
         }
+
+        assert_f64_near!(h.total_count(), 1.55, 4);
+        assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
     }
 }
