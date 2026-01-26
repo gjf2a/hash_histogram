@@ -1,3 +1,7 @@
+# 0.10.1
+* Last update broke documentation generation.
+* I suspect the approximate assertion, which I have removed.
+
 # 0.10.0
 * Relaxed a number of type restrictions on keys and values.
 * This relaxation of restrictions now enables `f32` and `f64` to qualify as a `CounterType`. 
