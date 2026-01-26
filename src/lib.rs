@@ -22,7 +22,7 @@
 //! let mut iterated: Vec<(&str,usize)> = h.iter().map(|(s,c)| (*s, *c)).collect();
 //! iterated.sort();
 //! assert_eq!(iterated, vec![("a", 3), ("b", 4), ("c", 1)]);
-//! 
+//!
 //! // Iterating over counts only
 //! let mut counts: Vec<usize> = h.counts().collect();
 //! counts.sort();
@@ -44,6 +44,20 @@
 //!
 //! for (s, count) in [("a", 5), ("b", 7), ("c", 11), ("d", 5)].iter() {
 //!     assert_eq!(h.count(s), *count);
+//! }
+//! ```
+//!
+//! Counts can even be floating-point values:
+//! ```
+//! use hash_histogram::HashHistogram;
+//!
+//! let mut h = HashHistogram::new();
+//! for (s, weight) in [("a", 0.25), ("b", 0.5), ("a", 0.3), ("c", 0.4), ("b", 0.1)].iter() {
+//!     h.bump_by(s, *weight);
+//! }
+//!
+//! for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
+//!     assert_eq!(h.count(s), *total);
 //! }
 //! ```
 //!
@@ -104,9 +118,9 @@
 //    limitations under the License.
 
 use core::fmt;
-use std::cmp::Ordering;
 use num::{One, Zero};
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
@@ -116,13 +130,19 @@ use std::ops::AddAssign;
 use trait_set::trait_set;
 
 trait_set! {
-    pub trait KeyType = Debug + Hash + Clone + Eq + Default;
+    pub trait KeyType = Debug + Hash + Clone + Eq;
     pub trait CounterType = Copy + Clone + One + Zero + AddAssign + PartialOrd + Sum + Default;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct HashHistogram<T: KeyType, C: CounterType = usize> {
     histogram: HashMap<T, C>,
+}
+
+impl<T: KeyType, C: CounterType> Default for HashHistogram<T, C> {
+    fn default() -> Self {
+        Self { histogram: Default::default() }
+    }
 }
 
 impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
@@ -157,8 +177,8 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
         self.histogram.iter()
     }
 
-    pub fn counts(&self) -> impl Iterator<Item=C> + '_ {
-        self.iter().map(|(_,c)| c).copied()
+    pub fn counts(&self) -> impl Iterator<Item = C> + '_ {
+        self.iter().map(|(_, c)| c).copied()
     }
 
     pub fn all_labels(&self) -> HashSet<T> {
@@ -180,7 +200,7 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
 
     pub fn mode(&self) -> Option<T> {
         self.iter()
-            .max_by(|(_,c1), (_,c2)| c1.partial_cmp(c2).unwrap_or(Ordering::Equal))
+            .max_by(|(_, c1), (_, c2)| c1.partial_cmp(c2).unwrap_or(Ordering::Equal))
             .map(|(key, _)| key.clone())
     }
 
@@ -277,5 +297,45 @@ mod tests {
         assert_eq!(twos, hist.count(&2));
         assert_eq!(2, hist.mode().unwrap());
         assert_eq!(zeros + ones + twos, hist.total_count());
+    }
+
+    #[test]
+    fn test_str_key() {
+        let mut h: HashHistogram<&str, usize> = HashHistogram::new();
+        for s in ["a", "b", "a", "b", "c", "b", "a", "b"].iter() {
+            h.bump(s);
+        }
+
+        for (s, c) in [("a", 3), ("b", 4), ("c", 1), ("d", 0)].iter() {
+            assert_eq!(h.count(s), *c);
+        }
+
+        assert_eq!(h.total_count(), 8);
+    }
+
+    #[test]
+    fn test_bump_by() {
+        let mut h = HashHistogram::new();
+        for (s, c) in [("a", 1), ("b", 3), ("a", 2), ("c", 1), ("b", 1)].iter() {
+            h.bump_by(s, *c);
+        }
+
+        for (s, c) in [("a", 3), ("b", 4), ("c", 1), ("d", 0)].iter() {
+            assert_eq!(h.count(s), *c);
+        }
+
+        assert_eq!(h.total_count(), 8);
+    }
+
+    #[test]
+    fn test_float_count() {
+        let mut h = HashHistogram::new();
+        for (s, weight) in [("a", 0.25), ("b", 0.5), ("a", 0.3), ("c", 0.4), ("b", 0.1)].iter() {
+            h.bump_by(s, *weight);
+        }
+
+        for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
+            assert_eq!(h.count(s), *total);
+        }
     }
 }
