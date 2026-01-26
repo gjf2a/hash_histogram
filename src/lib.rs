@@ -153,7 +153,7 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
         *self.histogram.get(item).unwrap_or(&num::zero())
     }
 
-    pub fn iter(&self) -> Iter<T, C> {
+    pub fn iter(&self) -> Iter<'_, T, C> {
         self.histogram.iter()
     }
 
