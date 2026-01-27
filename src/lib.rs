@@ -59,7 +59,7 @@
 //! for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
 //!     assert_eq!(h.count(s), *total);
 //! }
-//! 
+//!
 //! assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
 //! ```
 //!
@@ -91,17 +91,35 @@
 //! use hash_histogram::HashHistogram;
 //!
 //! // Initialization from an iterator:
-//! let mut h: HashHistogram<isize> = [100, 200, 100, 200, 300, 200, 100, 200].iter().collect();
+//! let mut h1: HashHistogram<isize> = [100, 200, 100, 200, 300, 200, 100, 200].iter().collect();
+//! let mut h2: HashHistogram<isize, usize> = [(100, 2), (200, 3), (300, 1), (100, 1), (200, 1)].iter().copied().collect();
+//! let expected_ranking = vec![(200, 4), (100, 3), (300, 1)];
+//! assert_eq!(h1.ranking_with_counts(), expected_ranking);
+//! assert_eq!(h2.ranking_with_counts(), expected_ranking);
 //!
 //! // Extension from an iterator
-//! h.extend([200, 400, 200, 500, 200].iter());
+//! h1.extend([200, 300, 200, 400, 200].iter());
+//! h2.extend([(200, 1), (300, 1), (400, 1), (200, 2)].iter());
+//! let expected_ranking_extended = vec![(200, 7), (100, 3), (300, 2), (400, 1)];
+//! assert_eq!(h1.ranking_with_counts(), expected_ranking_extended);
+//! assert_eq!(h2.ranking_with_counts(), expected_ranking_extended);
 //!
 //! // Serialization
-//! let serialized = serde_json::to_string(&h).unwrap();
+//! let serialized = serde_json::to_string(&h1).unwrap();
 //!
 //! // Deserialization
 //! let deserialized: HashHistogram<isize> = serde_json::from_str(&serialized).unwrap();
-//! assert_eq!(deserialized, h);
+//! assert_eq!(deserialized, h1);
+//! ```
+//!
+//! We can combine histograms of the same type using the `+=` operator:
+//! ```
+//! use hash_histogram::HashHistogram;
+//! let mut h1: HashHistogram<&str> = ["a", "b", "c", "d", "b", "d", "c", "b", "d"].iter().collect();
+//! let h2: HashHistogram<&str> = ["e", "b", "c", "d", "d", "e"].iter().collect();
+//!
+//! h1 += &h2;
+//! assert_eq!(h1.ranking_with_counts(), vec![("d", 5), ("b", 4), ("c", 3), ("e", 2), ("a", 1)]);
 //! ```
 //!
 
@@ -143,7 +161,9 @@ pub struct HashHistogram<T: KeyType, C: CounterType = usize> {
 
 impl<T: KeyType, C: CounterType> Default for HashHistogram<T, C> {
     fn default() -> Self {
-        Self { histogram: Default::default() }
+        Self {
+            histogram: Default::default(),
+        }
     }
 }
 
@@ -211,6 +231,14 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
     }
 }
 
+impl<T: KeyType, C: CounterType> AddAssign<&HashHistogram<T, C>> for HashHistogram<T, C> {
+    fn add_assign(&mut self, rhs: &HashHistogram<T, C>) {
+        for (key, count) in rhs.histogram.iter() {
+            self.bump_by(key, *count);
+        }
+    }
+}
+
 impl<T: KeyType + std::cmp::Ord + fmt::Display, C: CounterType + fmt::Display> fmt::Display
     for HashHistogram<T, C>
 {
@@ -234,6 +262,16 @@ impl<T: KeyType, C: CounterType> FromIterator<T> for HashHistogram<T, C> {
     }
 }
 
+impl<T: KeyType, C: CounterType> FromIterator<(T, C)> for HashHistogram<T, C> {
+    fn from_iter<V: IntoIterator<Item = (T, C)>>(iter: V) -> Self {
+        let mut result = HashHistogram::new();
+        for (key, value) in iter {
+            result.bump_by(&key, value);
+        }
+        result
+    }
+}
+
 impl<'a, T: 'a + KeyType, C: 'a + CounterType> FromIterator<&'a T> for HashHistogram<T, C> {
     fn from_iter<V: IntoIterator<Item = &'a T>>(iter: V) -> Self {
         let mut result = HashHistogram::new();
@@ -248,6 +286,14 @@ impl<'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a T> for HashHistogram<T
     fn extend<V: IntoIterator<Item = &'a T>>(&mut self, iter: V) {
         for value in iter {
             self.bump(value);
+        }
+    }
+}
+
+impl<'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a (T, C)> for HashHistogram<T, C> {
+    fn extend<V: IntoIterator<Item = &'a (T, C)>>(&mut self, iter: V) {
+        for (item, value) in iter {
+            self.bump_by(item, *value);
         }
     }
 }
@@ -343,6 +389,9 @@ mod tests {
         }
 
         assert_f64_near!(h.total_count(), 1.55, 4);
-        assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
+        assert_eq!(
+            h.ranking_with_counts(),
+            vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]
+        );
     }
 }

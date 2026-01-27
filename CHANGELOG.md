@@ -1,6 +1,11 @@
+# 0.11.0
+* Added AddAssign for HashHistogram objects to combine them easily.
+* Added FromIterator variant that uses `bump_by()`.
+
 # 0.10.1
-* Last update broke documentation generation.
-* I suspect the approximate assertion, which I have removed.
+* Removed the approximate assertion from the doc-tests.
+  * Using the supplementary crate in a doc-test seemed distracting.
+* Assertion moved to standard tests.
 
 # 0.10.0
 * Relaxed a number of type restrictions on keys and values.
