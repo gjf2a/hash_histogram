@@ -1,3 +1,7 @@
+# 0.12.0
+* Added support of the [rust_decimal](https://crates.io/crates/rust_decimal) crate.
+* Added normalization of `HashHistogram` objects using `Decimal` and `f64` counts.
+
 # 0.11.0
 * Added AddAssign for HashHistogram objects to combine them easily.
 * Added FromIterator variant that uses `bump_by()`.

@@ -47,20 +47,22 @@
 //! }
 //! ```
 //!
-//! Counts can even be floating-point values:
+//! Counts can be floating-point or decimal values.  Histograms with floating-point or decimal values can be normalized so that all
+//! their counts add up to `1.0`. In the doc-tests below, we use the `Decimal` type from the 
+//! [rust_decimal](https://crates.io/crates/rust_decimal) crate to enable reliable assertions
+//! of equality. The example would work similarly with `f64` counts.
 //! ```
 //! use hash_histogram::HashHistogram;
+//! use rust_decimal_macros::dec;
 //!
 //! let mut h = HashHistogram::new();
-//! for (s, weight) in [("a", 0.25), ("b", 0.5), ("a", 0.3), ("c", 0.4), ("b", 0.1)].iter() {
+//! for (s, weight) in [("a", dec!(0.6)), ("b", dec!(2.6)), ("c", dec!(1.0)), ("a", dec!(0.6)), ("c", dec!(0.8)), ("b", dec!(0.4))].iter() {
 //!     h.bump_by(s, *weight);
 //! }
 //!
-//! for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
-//!     assert_eq!(h.count(s), *total);
-//! }
-//!
-//! assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
+//! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]);
+//! h.normalize();
+//! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]);
 //! ```
 //!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`
@@ -139,6 +141,7 @@
 
 use core::fmt;
 use num::{One, Zero};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::hash_map::Iter;
@@ -239,6 +242,27 @@ impl<T: KeyType, C: CounterType> AddAssign<&HashHistogram<T, C>> for HashHistogr
     }
 }
 
+macro_rules! normalize {
+    ($obj:ident) => {
+        let total = $obj.total_count();
+        for value in $obj.histogram.values_mut() {
+            *value /= total;
+        }
+    };
+}
+
+impl<T: KeyType> HashHistogram<T, f64> {
+    pub fn normalize(&mut self) {
+        normalize!(self);
+    }
+}
+
+impl<T: KeyType> HashHistogram<T, Decimal> {
+    pub fn normalize(&mut self) {
+        normalize!(self);
+    }
+}
+
 impl<T: KeyType + std::cmp::Ord + fmt::Display, C: CounterType + fmt::Display> fmt::Display
     for HashHistogram<T, C>
 {
@@ -321,6 +345,7 @@ mod tests {
     use assert_float_eq::assert_f64_near;
 
     use super::*;
+    use rust_decimal_macros::dec;
 
     #[test]
     fn test_hist() {
@@ -392,6 +417,34 @@ mod tests {
         assert_eq!(
             h.ranking_with_counts(),
             vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]
+        );
+    }
+
+    #[test]
+    fn test_normalize() {
+        let mut h = HashHistogram::new();
+        for (s, weight) in [
+            ("a", dec!(0.6)),
+            ("b", dec!(2.6)),
+            ("c", dec!(1.0)),
+            ("a", dec!(0.6)),
+            ("c", dec!(0.8)),
+            ("b", dec!(0.4)),
+        ]
+        .iter()
+        {
+            h.bump_by(s, *weight);
+        }
+
+        assert_eq!(
+            h.ranking_with_counts(),
+            vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]
+        );
+
+        h.normalize();
+        assert_eq!(
+            h.ranking_with_counts(),
+            vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]
         );
     }
 }
