@@ -61,7 +61,7 @@
 //! }
 //!
 //! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]);
-//! h.normalize();
+//! h.normalize(dec!(1.0));
 //! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]);
 //! ```
 //!
@@ -141,7 +141,6 @@
 
 use core::fmt;
 use num::{One, Zero};
-use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::hash_map::Iter;
@@ -149,7 +148,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::iter::Sum;
-use std::ops::AddAssign;
+use std::ops::{AddAssign, Div};
 use trait_set::trait_set;
 
 trait_set! {
@@ -242,24 +241,15 @@ impl<T: KeyType, C: CounterType> AddAssign<&HashHistogram<T, C>> for HashHistogr
     }
 }
 
-macro_rules! normalize {
-    ($obj:ident) => {
-        let total = $obj.total_count();
-        for value in $obj.histogram.values_mut() {
-            *value /= total;
+impl<T: KeyType, C: CounterType + Div<Output = C>> HashHistogram<T,C> {
+    /// Normalizes counts so that they add up to `target_total`.
+    /// Because of rounding and truncation, they might not add up exactly
+    /// to that total. 
+    pub fn normalize(&mut self, target_total: C) {
+        let total = self.total_count();
+        for value in self.histogram.values_mut() {
+            *value = *value * target_total / total;
         }
-    };
-}
-
-impl<T: KeyType> HashHistogram<T, f64> {
-    pub fn normalize(&mut self) {
-        normalize!(self);
-    }
-}
-
-impl<T: KeyType> HashHistogram<T, Decimal> {
-    pub fn normalize(&mut self) {
-        normalize!(self);
     }
 }
 
@@ -441,7 +431,7 @@ mod tests {
             vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]
         );
 
-        h.normalize();
+        h.normalize(dec!(1.0));
         assert_eq!(
             h.ranking_with_counts(),
             vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]
