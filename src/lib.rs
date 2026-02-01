@@ -47,8 +47,24 @@
 //! }
 //! ```
 //!
-//! Counts can be floating-point or decimal values.  Histograms with floating-point or decimal values can be normalized so that all
-//! their counts add up to `1.0`. In the doc-tests below, we use the `Decimal` type from the 
+//! Counts can be of any numerical type, including floating-point values.
+//! ```
+//! use hash_histogram::HashHistogram;
+//!
+//! let mut h = HashHistogram::new();
+//! for (s, weight) in [("a", 0.25), ("b", 0.5), ("a", 0.3), ("c", 0.4), ("b", 0.1)].iter() {
+//!     h.bump_by(s, *weight);
+//! }
+//!
+//! for (s, total) in [("a", 0.55), ("b", 0.6), ("c", 0.4)].iter() {
+//!     assert_eq!(h.count(s), *total);
+//! }
+//!
+//! assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
+//! ```
+//! 
+//! Histograms can be normalized so that all their counts add up to a target value. 
+//! In the doc-tests below, we use the `Decimal` type from the 
 //! [rust_decimal](https://crates.io/crates/rust_decimal) crate to enable reliable assertions
 //! of equality. The example would work similarly with `f64` counts.
 //! ```
@@ -63,6 +79,19 @@
 //! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]);
 //! h.normalize(dec!(1.0));
 //! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]);
+//! ```
+//! 
+//! By selecting suitable target values, normalization can be useful with integer counts as well.
+//! ```
+//! use hash_histogram::HashHistogram;
+//! 
+//! let mut h = HashHistogram::new();
+//! for s in ["a", "b", "a", "b", "c", "b", "a", "b", "c", "d"].iter() {
+//!     h.bump(s);
+//! }
+//! 
+//! h.normalize(100);
+//! assert_eq!(h.ranking_with_counts(), vec![("b", 40), ("a", 30), ("c", 20), ("d", 10)]);
 //! ```
 //!
 //! Calculating the mode is sufficiently useful on its own that the `mode()` and `mode_values()`

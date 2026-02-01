@@ -1,3 +1,9 @@
+# 0.13.0
+* Changed `normalize()` to require a parameter representing the target number of counts. This is a backwards-incompatible change, but to preserve previous behavior set the target number of counts to `1.0`. 
+* This change enables us to normalize even with integer counts as long as we select a suitable target.
+* It also means we do not have to explicitly reference [rust_decimal](https://crates.io/crates/rust_decimal) outside of test code. It still works perfectly with it, as it implements the right traits.
+
+
 # 0.12.0
 * Added support of the [rust_decimal](https://crates.io/crates/rust_decimal) crate.
 * Added normalization of `HashHistogram` objects using `Decimal` and `f64` counts.

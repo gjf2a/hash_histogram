@@ -1,6 +1,6 @@
 [package]
 name = "hash_histogram"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["gjf2a <ferrer@hendrix.edu>"]
 edition = "2024"
 description = "HashHistogram creates histograms with keys of any hashable data type. Features include rank ordering and mode."
