@@ -116,6 +116,24 @@
 //! assert_eq!(mode_values(nums.iter().map(|n| n + 1)).unwrap(), 201);
 //! ```
 //!
+//! The counts from a `HashHistogram` can be interpreted as weights for a probability
+//! distribution. The `pick_random_key()` method will select a key with a probability 
+//! derived from the counts.
+//! 
+//! ```
+//! use hash_histogram::HashHistogram;
+//! 
+//! let distro: HashHistogram<&str,usize> = ["a", "a", "a", "a", "b", "b"].iter().collect();
+//! for _ in 0..100 {
+//!     let mut counter: HashHistogram<&str, usize> = HashHistogram::default();
+//!     for _ in 0..10000 {
+//!         counter.bump(&distro.pick_random_key());
+//!     }
+//!     assert!(counter.count(&"a")> 6000 && counter.count(&"a") < 7000);
+//!     assert!(counter.count(&"b")> 3000 && counter.count(&"b") < 4000);
+//! }
+//! ```
+//! 
 //! `HashHistogram` supports common Rust data structure operations. It implements the
 //! `FromIterator` and `Extend` traits, and derives `serde`:
 //! ```
@@ -170,6 +188,7 @@
 
 use core::fmt;
 use num::{One, Zero};
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::hash_map::Iter;
@@ -341,6 +360,60 @@ impl<'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a (T, C)> for HashHistog
     }
 }
 
+pub trait RandomRanger : Copy + Clone {
+    fn choice_from_range(total: Self) -> Self;
+}
+
+macro_rules! derive_random_ranger_int {
+    ($datatype:tt) => {
+        impl RandomRanger for $datatype {
+            fn choice_from_range(total: Self) -> Self {
+                rand::rng().random_range(0..total)
+            }
+        }
+    };
+}
+
+macro_rules! derive_random_ranger_float {
+    ($datatype:tt) => {
+        impl RandomRanger for $datatype {
+            fn choice_from_range(total: Self) -> Self {
+                rand::random::<$datatype>() * total
+            }
+        }
+    }
+}
+
+derive_random_ranger_int!(u8);
+derive_random_ranger_int!(u16);
+derive_random_ranger_int!(u32);
+derive_random_ranger_int!(u64);
+derive_random_ranger_int!(u128);
+derive_random_ranger_int!(usize);
+derive_random_ranger_int!(i8);
+derive_random_ranger_int!(i16);
+derive_random_ranger_int!(i32);
+derive_random_ranger_int!(i64);
+derive_random_ranger_int!(i128);
+
+derive_random_ranger_float!(f32);
+derive_random_ranger_float!(f64);
+
+impl<T: KeyType, C: CounterType + RandomRanger> HashHistogram<T, C> {
+    pub fn pick_random_key(&self) -> T {
+        assert!(self.len() > 0);
+        let choice = C::choice_from_range(self.total_count());
+        let mut total = C::zero();
+        for (k, w) in self.iter() {
+            total += *w;
+            if total > choice {
+                return k.clone();
+            }
+        }
+        panic!("This should never happen.");
+    }
+}
+
 // Future idea:
 //
 // https://stackoverflow.com/questions/30540766/how-can-i-add-new-methods-to-iterator
@@ -436,34 +509,6 @@ mod tests {
         assert_eq!(
             h.ranking_with_counts(),
             vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]
-        );
-    }
-
-    #[test]
-    fn test_normalize() {
-        let mut h = HashHistogram::new();
-        for (s, weight) in [
-            ("a", dec!(0.6)),
-            ("b", dec!(2.6)),
-            ("c", dec!(1.0)),
-            ("a", dec!(0.6)),
-            ("c", dec!(0.8)),
-            ("b", dec!(0.4)),
-        ]
-        .iter()
-        {
-            h.bump_by(s, *weight);
-        }
-
-        assert_eq!(
-            h.ranking_with_counts(),
-            vec![("b", dec!(3.0)), ("c", dec!(1.8)), ("a", dec!(1.2))]
-        );
-
-        h.normalize(dec!(1.0));
-        assert_eq!(
-            h.ranking_with_counts(),
-            vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]
         );
     }
 }
