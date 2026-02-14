@@ -6,7 +6,7 @@
 * This change enables us to normalize even with integer counts as long as we select a suitable target.
 * It also means we do not have to explicitly reference [rust_decimal](https://crates.io/crates/rust_decimal) outside of test code. It still works perfectly with it, as it implements the right traits.
 
-# 0.12.0
+# 0.12.0`
 * Added support of the [rust_decimal](https://crates.io/crates/rust_decimal) crate.
 * Added normalization of `HashHistogram` objects using `Decimal` and `f64` counts.
 

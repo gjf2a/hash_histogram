@@ -62,9 +62,9 @@
 //!
 //! assert_eq!(h.ranking_with_counts(), vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]);
 //! ```
-//! 
-//! Histograms can be normalized so that all their counts add up to a target value. 
-//! In the doc-tests below, we use the `Decimal` type from the 
+//!
+//! Histograms can be normalized so that all their counts add up to a target value.
+//! In the doc-tests below, we use the `Decimal` type from the
 //! [rust_decimal](https://crates.io/crates/rust_decimal) crate to enable reliable assertions
 //! of equality. The example would work similarly with `f64` counts.
 //! ```
@@ -80,16 +80,16 @@
 //! h.normalize(dec!(1.0));
 //! assert_eq!(h.ranking_with_counts(), vec![("b", dec!(0.5)), ("c", dec!(0.3)), ("a", dec!(0.2))]);
 //! ```
-//! 
+//!
 //! By selecting suitable target values, normalization can be useful with integer counts as well.
 //! ```
 //! use hash_histogram::HashHistogram;
-//! 
+//!
 //! let mut h = HashHistogram::new();
 //! for s in ["a", "b", "a", "b", "c", "b", "a", "b", "c", "d"].iter() {
 //!     h.bump(s);
 //! }
-//! 
+//!
 //! h.normalize(100);
 //! assert_eq!(h.ranking_with_counts(), vec![("b", 40), ("a", 30), ("c", 20), ("d", 10)]);
 //! ```
@@ -117,13 +117,13 @@
 //! ```
 //!
 //! The counts from a `HashHistogram` can be interpreted as weights for a probability
-//! distribution. The `pick_random_key()` method will select a key with a probability 
+//! distribution. The `pick_random_key()` method will select a key with a probability
 //! derived from the counts.
-//! 
+//!
 //! ```
 //! use hash_histogram::HashHistogram;
-//! 
-//! let distro: HashHistogram<&str,usize> = ["a", "a", "a", "a", "b", "b"].iter().collect();
+//!
+//! let distro: HashHistogram<&str, usize> = ["a", "a", "a", "a", "b", "b"].iter().collect();
 //! for _ in 0..100 {
 //!     let mut counter: HashHistogram<&str, usize> = HashHistogram::default();
 //!     for _ in 0..10000 {
@@ -133,7 +133,7 @@
 //!     assert!(counter.count(&"b")> 3000 && counter.count(&"b") < 4000);
 //! }
 //! ```
-//! 
+//!
 //! `HashHistogram` supports common Rust data structure operations. It implements the
 //! `FromIterator` and `Extend` traits, and derives `serde`:
 //! ```
@@ -193,7 +193,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::Sum;
 use std::ops::{AddAssign, Div};
@@ -289,10 +289,10 @@ impl<T: KeyType, C: CounterType> AddAssign<&HashHistogram<T, C>> for HashHistogr
     }
 }
 
-impl<T: KeyType, C: CounterType + Div<Output = C>> HashHistogram<T,C> {
+impl<T: KeyType, C: CounterType + Div<Output = C>> HashHistogram<T, C> {
     /// Normalizes counts so that they add up to `target_total`.
     /// Because of rounding and truncation, they might not add up exactly
-    /// to that total. 
+    /// to that total.
     pub fn normalize(&mut self, target_total: C) {
         let total = self.total_count();
         for value in self.histogram.values_mut() {
@@ -360,7 +360,7 @@ impl<'a, T: 'a + KeyType, C: 'a + CounterType> Extend<&'a (T, C)> for HashHistog
     }
 }
 
-pub trait RandomRanger : Copy + Clone {
+pub trait RandomRanger: Copy + Clone {
     fn choice_from_range(total: Self) -> Self;
 }
 
@@ -381,7 +381,7 @@ macro_rules! derive_random_ranger_float {
                 rand::random::<$datatype>() * total
             }
         }
-    }
+    };
 }
 
 derive_random_ranger_int!(u8);
@@ -399,7 +399,10 @@ derive_random_ranger_int!(i128);
 derive_random_ranger_float!(f32);
 derive_random_ranger_float!(f64);
 
-impl<T: KeyType, C: CounterType + RandomRanger> HashHistogram<T, C> {
+impl<T: KeyType, C: CounterType + RandomRanger + Display> HashHistogram<T, C> {
+    /// Selects a key at random from the keys of this `HashHistogram`.
+    /// Key selection probability is weighted by the number of counts the key has received.
+    /// Panics if this `HashHistogram` contains no keys.
     pub fn pick_random_key(&self) -> T {
         assert!(self.len() > 0);
         let choice = C::choice_from_range(self.total_count());
@@ -410,7 +413,7 @@ impl<T: KeyType, C: CounterType + RandomRanger> HashHistogram<T, C> {
                 return k.clone();
             }
         }
-        panic!("This should never happen.");
+        panic!("Bug: Somehow, {choice} exceeds {}", self.total_count());
     }
 }
 
@@ -509,5 +512,31 @@ mod tests {
             h.ranking_with_counts(),
             vec![("b", 0.6), ("a", 0.55), ("c", 0.4)]
         );
+    }
+
+    #[test]
+    fn test_even_distro() {
+        let distro: HashHistogram<&str, usize> = ["a", "b"].iter().collect();
+        for _ in 0..100 {
+            let mut counts: HashHistogram<&str, usize> = HashHistogram::new();
+            for _ in 0..10000 {
+                counts.bump(&distro.pick_random_key());
+            }
+            assert!(counts.count(&"a") > 4500 && counts.count(&"a") < 5500);
+            assert!(counts.count(&"b") > 4500 && counts.count(&"b") < 5500);
+        }
+    }
+
+    #[test]
+    fn test_float_distro() {
+        let distro: HashHistogram<&str, f64> = [("a", 1.4), ("b", 2.8)].iter().copied().collect();
+        for _ in 0..100 {
+            let mut counts: HashHistogram<&str, usize> = HashHistogram::new();
+            for _ in 0..10000 {
+                counts.bump(&distro.pick_random_key());
+            }
+            assert!(counts.count(&"a") > 3000 && counts.count(&"a") < 4000);
+            assert!(counts.count(&"b") > 6000 && counts.count(&"b") < 7000);
+        }
     }
 }
