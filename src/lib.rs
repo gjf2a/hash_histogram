@@ -437,7 +437,6 @@ mod tests {
     use assert_float_eq::assert_f64_near;
 
     use super::*;
-    use rust_decimal_macros::dec;
 
     #[test]
     fn test_hist() {
