@@ -1,3 +1,6 @@
+# 0.14.0
+* Added `pick_random_key()`.
+
 # 0.13.0
 * Changed `normalize()` to require a parameter representing the target number of counts. This is a backwards-incompatible change, but to preserve previous behavior set the target number of counts to `1.0`. 
 * This change enables us to normalize even with integer counts as long as we select a suitable target.

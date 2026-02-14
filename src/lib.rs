@@ -237,12 +237,12 @@ impl<T: KeyType, C: CounterType> HashHistogram<T, C> {
         };
     }
 
-    pub fn len(&self) -> usize {
-        self.histogram.len()
-    }
-
     pub fn count(&self, item: &T) -> C {
         *self.histogram.get(item).unwrap_or(&num::zero())
+    }
+
+    pub fn len(&self) -> usize {
+        self.histogram.len()
     }
 
     pub fn iter(&self) -> Iter<'_, T, C> {
